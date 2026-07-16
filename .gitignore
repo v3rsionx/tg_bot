@@ -1,0 +1,62 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# SQLite
+bot.db
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# LMDB
+*.lmdb
+data.mdb
+lock.mdb
+
+# Runtime data (keep directory placeholders)
+/data/*
+!/data/.gitkeep
+/logs/*
+!/logs/.gitkeep
+/dumps/*
+!/dumps/.gitkeep
+
+# Operational and temporary directories
+results/
+build/
+bin/
+dist/
+tmp/
+vendor/
+
+# Build and test artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+*.cover
+coverage.out
+coverage.html
+profile.out
+cpu.prof
+mem.prof
+
+# Go workspace files
+go.work
+go.work.sum
+
+# Editors and OS metadata
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
