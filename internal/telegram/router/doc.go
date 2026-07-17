@@ -1,2 +1,2 @@
-// Package router will contain Telegram update routing.
+// Package router registers Telegram commands and callback routes.
 package router

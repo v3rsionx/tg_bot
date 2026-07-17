@@ -1,2 +1,2 @@
-// Package handlers reserves the Telegram handler boundary.
+// Package handlers implements Telegram command, message, and callback handlers.
 package handlers

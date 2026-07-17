@@ -1,2 +1,2 @@
-// Package database defines storage abstractions shared by infrastructure adapters.
+// Package database defines shared storage abstractions for infrastructure adapters.
 package database

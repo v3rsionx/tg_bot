@@ -1,0 +1,17 @@
+{
+  "version": "1",
+  "bot_token": "",
+  "bot_owner_ids": [],
+  "sqlite_path": "./data/bot.db",
+  "lmdb_id_path": "./data/lmdb/id",
+  "lmdb_phone_path": "./data/lmdb/phone",
+  "lmdb_username_path": "./data/lmdb/username",
+  "log_level": "info",
+  "worker_count": 4,
+  "batch_size": 1000,
+  "search_timeout": "5s",
+  "points_per_search": 1,
+  "max_results": 100,
+  "cache_ttl": "5m",
+  "rate_limit": 5
+}

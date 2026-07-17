@@ -1,2 +1,2 @@
-// Package middleware reserves the Telegram middleware boundary.
+// Package middleware provides Telegram update middleware.
 package middleware

@@ -1,2 +1,2 @@
-// Package keyboard reserves the Telegram keyboard boundary.
+// Package keyboard provides Telegram reply and inline keyboard builders.
 package keyboard
