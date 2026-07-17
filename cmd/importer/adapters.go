@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/v3rsi/tgbot-versionx/internal/importer"
-	applogger "github.com/v3rsi/tgbot-versionx/internal/logger"
+	"github.com/v3rsionx/tg_bot/internal/importer"
+	applogger "github.com/v3rsionx/tg_bot/internal/logger"
 )
 
 type printfLogger struct {

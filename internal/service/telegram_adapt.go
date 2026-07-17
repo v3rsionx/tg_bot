@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/v3rsi/tgbot-versionx/internal/telegram"
+	"github.com/v3rsionx/tg_bot/internal/telegram"
 )
 
 // TelegramSearch adapts SearchService to telegram.Search.

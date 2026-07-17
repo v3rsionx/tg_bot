@@ -1,6 +1,6 @@
 package sqlite
 
-import "github.com/v3rsi/tgbot-versionx/internal/repository"
+import "github.com/v3rsionx/tg_bot/internal/repository"
 
 // Compile-time checks that concrete types satisfy repository ports.
 var (

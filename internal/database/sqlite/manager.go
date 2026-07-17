@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/v3rsi/tgbot-versionx/internal/repository"
+	"github.com/v3rsionx/tg_bot/internal/repository"
 )
 
 // DatabaseManager coordinates connection lifecycle, migrations, and repositories.

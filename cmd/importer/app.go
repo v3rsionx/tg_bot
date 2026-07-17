@@ -7,12 +7,12 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/v3rsi/tgbot-versionx/internal/config"
-	"github.com/v3rsi/tgbot-versionx/internal/constants"
-	"github.com/v3rsi/tgbot-versionx/internal/database/lmdb"
-	"github.com/v3rsi/tgbot-versionx/internal/importer"
-	applogger "github.com/v3rsi/tgbot-versionx/internal/logger"
-	"github.com/v3rsi/tgbot-versionx/internal/metrics"
+	"github.com/v3rsionx/tg_bot/internal/config"
+	"github.com/v3rsionx/tg_bot/internal/constants"
+	"github.com/v3rsionx/tg_bot/internal/database/lmdb"
+	"github.com/v3rsionx/tg_bot/internal/importer"
+	applogger "github.com/v3rsionx/tg_bot/internal/logger"
+	"github.com/v3rsionx/tg_bot/internal/metrics"
 )
 
 // options holds importer CLI options.

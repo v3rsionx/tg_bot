@@ -8,7 +8,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/v3rsi/tgbot-versionx/internal/search"
+	"github.com/v3rsionx/tg_bot/internal/search"
 )
 
 // SearchOutcome is the structured business result of an exact lookup.

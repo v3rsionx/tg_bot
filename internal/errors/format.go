@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/v3rsi/tgbot-versionx/internal/constants"
+	"github.com/v3rsionx/tg_bot/internal/constants"
 )
 
 // jsonError is the JSON serialization shape, including cause text.

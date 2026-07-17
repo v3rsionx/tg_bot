@@ -6,9 +6,9 @@ import (
 	"sync"
 
 	"github.com/go-telegram/bot"
-	"github.com/v3rsi/tgbot-versionx/internal/telegram/handlers"
-	"github.com/v3rsi/tgbot-versionx/internal/telegram/middleware"
-	"github.com/v3rsi/tgbot-versionx/internal/telegram/router"
+	"github.com/v3rsionx/tg_bot/internal/telegram/handlers"
+	"github.com/v3rsionx/tg_bot/internal/telegram/middleware"
+	"github.com/v3rsionx/tg_bot/internal/telegram/router"
 )
 
 // Bot is the injectable Telegram transport facade.

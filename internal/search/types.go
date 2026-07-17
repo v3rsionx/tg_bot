@@ -3,7 +3,7 @@ package search
 import (
 	"time"
 
-	"github.com/v3rsi/tgbot-versionx/internal/database/lmdb"
+	"github.com/v3rsionx/tg_bot/internal/database/lmdb"
 )
 
 // QueryType identifies which exact index was queried.

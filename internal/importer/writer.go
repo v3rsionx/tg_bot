@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/v3rsi/tgbot-versionx/internal/database/lmdb"
+	"github.com/v3rsionx/tg_bot/internal/database/lmdb"
 )
 
 // indexWriter performs batched exact-lookup writes across destination stores.

@@ -3,7 +3,7 @@ package telegram
 import (
 	"context"
 
-	"github.com/v3rsi/tgbot-versionx/internal/telegram/handlers"
+	"github.com/v3rsionx/tg_bot/internal/telegram/handlers"
 )
 
 // searchBridge adapts telegram.Search to handlers.Search.

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/v3rsi/tgbot-versionx/internal/constants"
+	"github.com/v3rsionx/tg_bot/internal/constants"
 )
 
 func TestWrapUnwrapIsAs(t *testing.T) {

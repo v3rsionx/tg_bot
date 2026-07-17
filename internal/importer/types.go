@@ -3,7 +3,7 @@ package importer
 import (
 	"time"
 
-	"github.com/v3rsi/tgbot-versionx/internal/database/lmdb"
+	"github.com/v3rsionx/tg_bot/internal/database/lmdb"
 )
 
 // Stores holds destination exact-lookup LMDB engines.

@@ -1,4 +1,4 @@
-module github.com/v3rsi/tgbot-versionx
+module github.com/v3rsionx/tg_bot
 
 go 1.26
 

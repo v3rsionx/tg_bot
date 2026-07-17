@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/v3rsi/tgbot-versionx/internal/security"
+	"github.com/v3rsionx/tg_bot/internal/security"
 )
 
 var envKeyPattern = regexp.MustCompile(`^[A-Z][A-Z0-9_]*$`)

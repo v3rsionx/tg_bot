@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/v3rsi/tgbot-versionx/internal/database/sqlite"
-	"github.com/v3rsi/tgbot-versionx/internal/models"
-	"github.com/v3rsi/tgbot-versionx/internal/repository"
+	"github.com/v3rsionx/tg_bot/internal/database/sqlite"
+	"github.com/v3rsionx/tg_bot/internal/models"
+	"github.com/v3rsionx/tg_bot/internal/repository"
 )
 
 // TestDatabaseManagerRepositories covers migrations, CRUD, and transactions.

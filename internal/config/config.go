@@ -17,8 +17,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/v3rsi/tgbot-versionx/internal/security"
-	"github.com/v3rsi/tgbot-versionx/internal/validator"
+	"github.com/v3rsionx/tg_bot/internal/security"
+	"github.com/v3rsionx/tg_bot/internal/validator"
 )
 
 // Provider is the injectable configuration access contract.

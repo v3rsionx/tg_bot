@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/v3rsi/tgbot-versionx/internal/search"
-	"github.com/v3rsi/tgbot-versionx/internal/service"
+	"github.com/v3rsionx/tg_bot/internal/search"
+	"github.com/v3rsionx/tg_bot/internal/service"
 )
 
 func newTestModule(t *testing.T, owners ...int64) (*service.Module, *memoryUsers, *memoryHistory, *stubSender) {

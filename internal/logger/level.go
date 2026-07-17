@@ -3,7 +3,7 @@ package logger
 import (
 	"strings"
 
-	"github.com/v3rsi/tgbot-versionx/internal/constants"
+	"github.com/v3rsionx/tg_bot/internal/constants"
 )
 
 // Level is a log severity.

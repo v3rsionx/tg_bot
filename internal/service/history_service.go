@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/v3rsi/tgbot-versionx/internal/models"
+	"github.com/v3rsionx/tg_bot/internal/models"
 )
 
 // HistoryEntry is a business-level search history record.

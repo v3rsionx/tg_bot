@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/v3rsi/tgbot-versionx/internal/search"
+	"github.com/v3rsionx/tg_bot/internal/search"
 )
 
 // seedStores loads exact-lookup fixtures matching the importer payload format.

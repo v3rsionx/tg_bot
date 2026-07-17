@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/v3rsi/tgbot-versionx/internal/models"
+	"github.com/v3rsionx/tg_bot/internal/models"
 )
 
 // TransactionRepository defines persistence operations for point transactions.

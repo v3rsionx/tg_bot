@@ -7,16 +7,16 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/v3rsi/tgbot-versionx/internal/cache"
-	"github.com/v3rsi/tgbot-versionx/internal/config"
-	"github.com/v3rsi/tgbot-versionx/internal/constants"
-	"github.com/v3rsi/tgbot-versionx/internal/database/lmdb"
-	"github.com/v3rsi/tgbot-versionx/internal/database/sqlite"
-	applogger "github.com/v3rsi/tgbot-versionx/internal/logger"
-	"github.com/v3rsi/tgbot-versionx/internal/metrics"
-	"github.com/v3rsi/tgbot-versionx/internal/search"
-	"github.com/v3rsi/tgbot-versionx/internal/service"
-	"github.com/v3rsi/tgbot-versionx/internal/telegram"
+	"github.com/v3rsionx/tg_bot/internal/cache"
+	"github.com/v3rsionx/tg_bot/internal/config"
+	"github.com/v3rsionx/tg_bot/internal/constants"
+	"github.com/v3rsionx/tg_bot/internal/database/lmdb"
+	"github.com/v3rsionx/tg_bot/internal/database/sqlite"
+	applogger "github.com/v3rsionx/tg_bot/internal/logger"
+	"github.com/v3rsionx/tg_bot/internal/metrics"
+	"github.com/v3rsionx/tg_bot/internal/search"
+	"github.com/v3rsionx/tg_bot/internal/service"
+	"github.com/v3rsionx/tg_bot/internal/telegram"
 )
 
 // app owns the fully wired bot process graph.

@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/v3rsi/tgbot-versionx/internal/repository"
+	"github.com/v3rsionx/tg_bot/internal/repository"
 )
 
 // AccessService authorizes bot access and owner checks.

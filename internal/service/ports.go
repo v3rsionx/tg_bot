@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 
-	"github.com/v3rsi/tgbot-versionx/internal/models"
-	"github.com/v3rsi/tgbot-versionx/internal/repository"
-	"github.com/v3rsi/tgbot-versionx/internal/search"
+	"github.com/v3rsionx/tg_bot/internal/models"
+	"github.com/v3rsionx/tg_bot/internal/repository"
+	"github.com/v3rsionx/tg_bot/internal/search"
 )
 
 // UserRepository is the user persistence port used by business services.

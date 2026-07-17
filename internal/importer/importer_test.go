@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/v3rsi/tgbot-versionx/internal/importer"
+	"github.com/v3rsionx/tg_bot/internal/importer"
 )
 
 // TestImporterStreamsCSVAndWritesExactIndexes covers the happy path.

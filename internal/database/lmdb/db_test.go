@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/v3rsi/tgbot-versionx/internal/database/lmdb"
+	"github.com/v3rsionx/tg_bot/internal/database/lmdb"
 )
 
 // TestDBCRUDAndBatch covers core engine operations.

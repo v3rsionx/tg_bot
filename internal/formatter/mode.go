@@ -1,6 +1,6 @@
 package formatter
 
-import "github.com/v3rsi/tgbot-versionx/internal/constants"
+import "github.com/v3rsionx/tg_bot/internal/constants"
 
 // Mode selects output encoding.
 type Mode int

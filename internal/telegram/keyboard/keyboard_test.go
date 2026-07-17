@@ -3,7 +3,7 @@ package keyboard_test
 import (
 	"testing"
 
-	"github.com/v3rsi/tgbot-versionx/internal/telegram/keyboard"
+	"github.com/v3rsionx/tg_bot/internal/telegram/keyboard"
 )
 
 // TestInlineRowsBuildsCallbackButtons verifies inline keyboard construction.

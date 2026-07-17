@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 
-	applogger "github.com/v3rsi/tgbot-versionx/internal/logger"
-	"github.com/v3rsi/tgbot-versionx/internal/service"
-	"github.com/v3rsi/tgbot-versionx/internal/telegram"
+	applogger "github.com/v3rsionx/tg_bot/internal/logger"
+	"github.com/v3rsionx/tg_bot/internal/service"
+	"github.com/v3rsionx/tg_bot/internal/telegram"
 )
 
 // printfLogger adapts the production logger to Printf-style ports used by

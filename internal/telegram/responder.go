@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/go-telegram/bot"
-	"github.com/v3rsi/tgbot-versionx/internal/telegram/handlers"
+	"github.com/v3rsionx/tg_bot/internal/telegram/handlers"
 )
 
 // BotResponder adapts *bot.Bot to handlers.Responder.

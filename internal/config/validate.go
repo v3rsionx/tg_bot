@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/v3rsi/tgbot-versionx/internal/security"
-	"github.com/v3rsi/tgbot-versionx/internal/validator"
+	"github.com/v3rsionx/tg_bot/internal/security"
+	"github.com/v3rsionx/tg_bot/internal/validator"
 )
 
 func validateConfig(cfg *Config, v validator.Validator, s security.Sanitizer) error {

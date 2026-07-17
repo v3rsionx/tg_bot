@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
-	"github.com/v3rsi/tgbot-versionx/internal/telegram/handlers"
+	"github.com/v3rsionx/tg_bot/internal/telegram/handlers"
 )
 
 type stubResponder struct {

@@ -3,7 +3,7 @@ package sqlite
 import (
 	"fmt"
 
-	"github.com/v3rsi/tgbot-versionx/internal/config"
+	"github.com/v3rsionx/tg_bot/internal/config"
 )
 
 // OpenFromConfig constructs a DatabaseManager from validated application configuration.

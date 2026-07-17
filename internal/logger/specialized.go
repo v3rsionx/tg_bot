@@ -3,7 +3,7 @@ package logger
 import (
 	"time"
 
-	"github.com/v3rsi/tgbot-versionx/internal/constants"
+	"github.com/v3rsionx/tg_bot/internal/constants"
 )
 
 // ContextLogger is a logger bound to a component name.
