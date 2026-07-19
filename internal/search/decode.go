@@ -5,12 +5,17 @@ import (
 	"fmt"
 )
 
-// decodeIDPayload parses the importer ID payload format:
+// DecodeIDPayload parses the importer ID payload format:
 //
 //	phone\0username\0name\0extras
 //
 // Legacy payloads phone\0username (2 fields) remain valid; name and extras
 // are empty in that case.
+func DecodeIDPayload(id string, payload []byte) (Record, error) {
+	return decodeIDPayload(id, payload)
+}
+
+// decodeIDPayload parses the importer ID payload format.
 func decodeIDPayload(id string, payload []byte) (Record, error) {
 	if payload == nil {
 		return Record{}, fmt.Errorf("%w: empty payload", ErrNotFound)

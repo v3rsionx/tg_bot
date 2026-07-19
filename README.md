@@ -114,20 +114,32 @@ go build -o bin/bot.exe ./cmd/bot
 
 The bot currently validates configuration and exits. Telegram integration is not implemented yet.
 
+## Easy data tool (`cmd/data`)
+
+One command for viewing LMDB records and converting/importing dumps:
+
+```powershell
+go build -o bin/data.exe ./cmd/data
+
+.\bin\data.exe view 6473397867
+.\bin\data.exe stats
+.\bin\data.exe sample 10
+.\bin\data.exe convert dumps\raw.csv
+.\bin\data.exe import dumps\raw.standard.csv
+.\bin\data.exe add dumps\raw.csv
+```
+
+- `view` / `stats` / `sample` read the configured LMDB paths (prefer absolute `LMDB_*_PATH` values).
+- `convert` writes `*.standard.csv`.
+- `import` / `add` update existing IDs (name/extras included).
+- `add` converts automatically when the file is not already standard CSV.
+
 ## Running Importer
 
 ```powershell
-go run ./cmd/importer
-```
-
-Or:
-
-```powershell
 go build -o bin/importer.exe ./cmd/importer
-.\bin\importer.exe
+.\bin\importer.exe -file dumps\users.standard.csv
 ```
-
-The importer currently validates configuration and exits. Ingestion is not implemented yet.
 
 ## Development
 
