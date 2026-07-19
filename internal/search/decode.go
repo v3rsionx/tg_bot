@@ -18,9 +18,7 @@ func decodeIDPayload(id string, payload []byte) (Record, error) {
 	if len(parts) > 1 {
 		record.Username = string(parts[1])
 	}
-	if record.Phone == "" && record.Username == "" {
-		return Record{}, fmt.Errorf("%w: empty record fields", ErrNotFound)
-	}
+	// ID-only records (empty phone and username) are valid when the key exists.
 	return record, nil
 }
 

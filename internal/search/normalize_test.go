@@ -26,12 +26,47 @@ func TestNormalizeUsernameExactMatchRules(t *testing.T) {
 
 // TestDecodeIDPayloadRoundTrip verifies importer-compatible payload decoding.
 func TestDecodeIDPayloadRoundTrip(t *testing.T) {
-	payload := append(append([]byte("+15551110001"), 0), []byte("alice_one")...)
-	record, err := decodeIDPayload("1001", payload)
-	if err != nil {
-		t.Fatalf("decodeIDPayload() error = %v", err)
+	tests := []struct {
+		name     string
+		id       string
+		payload  []byte
+		want     Record
+	}{
+		{
+			name:    "id only",
+			id:      "6473397867",
+			payload: []byte{0},
+			want:    Record{ID: "6473397867"},
+		},
+		{
+			name:    "id + phone",
+			id:      "1001",
+			payload: append([]byte("+15551110001"), 0),
+			want:    Record{ID: "1001", Phone: "+15551110001"},
+		},
+		{
+			name:    "id + username",
+			id:      "1002",
+			payload: append([]byte{0}, []byte("alice_one")...),
+			want:    Record{ID: "1002", Username: "alice_one"},
+		},
+		{
+			name:    "id + phone + username",
+			id:      "1003",
+			payload: append(append([]byte("+15551110003"), 0), []byte("bob")...),
+			want:    Record{ID: "1003", Phone: "+15551110003", Username: "bob"},
+		},
 	}
-	if record.ID != "1001" || record.Phone != "+15551110001" || record.Username != "alice_one" {
-		t.Fatalf("unexpected record: %+v", record)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := decodeIDPayload(tt.id, tt.payload)
+			if err != nil {
+				t.Fatalf("decodeIDPayload() error = %v", err)
+			}
+			if got != tt.want {
+				t.Fatalf("got %+v, want %+v", got, tt.want)
+			}
+		})
 	}
 }

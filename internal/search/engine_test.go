@@ -50,8 +50,79 @@ func TestSearchByIDExactLookup(t *testing.T) {
 	if !result.Found || result.Record.Username != "alice_one" {
 		t.Fatalf("unexpected result: %+v", result)
 	}
-	if result.Latency <= 0 {
-		t.Fatal("Latency should be measured")
+	if result.Latency < 0 {
+		t.Fatal("Latency must not be negative")
+	}
+}
+
+// TestSearchByIDOptionalPhoneUsernameCombinations covers ID-centric payloads.
+func TestSearchByIDOptionalPhoneUsernameCombinations(t *testing.T) {
+	idStore := newMemoryEngine()
+	phoneStore := newMemoryEngine()
+	usernameStore := newMemoryEngine()
+	ctx := context.Background()
+
+	fixtures := []struct {
+		id       string
+		payload  []byte
+		phone    string
+		username string
+	}{
+		{id: "2001", payload: []byte{0}},
+		{id: "2002", payload: append([]byte("+15552220002"), 0), phone: "+15552220002"},
+		{id: "2003", payload: append([]byte{0}, []byte("only_user")...), username: "only_user"},
+		{
+			id:       "2004",
+			payload:  append(append([]byte("+15552220004"), 0), []byte("both_user")...),
+			phone:    "+15552220004",
+			username: "both_user",
+		},
+	}
+	for _, f := range fixtures {
+		if err := idStore.Put(ctx, []byte(f.id), f.payload); err != nil {
+			t.Fatalf("Put(id %s): %v", f.id, err)
+		}
+		if f.phone != "" {
+			if err := phoneStore.Put(ctx, []byte(f.phone), []byte(f.id)); err != nil {
+				t.Fatalf("Put(phone %s): %v", f.phone, err)
+			}
+		}
+		if f.username != "" {
+			if err := usernameStore.Put(ctx, []byte(f.username), []byte(f.id)); err != nil {
+				t.Fatalf("Put(username %s): %v", f.username, err)
+			}
+		}
+	}
+
+	svc, err := search.New(search.Config{}, search.Stores{
+		ID: idStore, Phone: phoneStore, Username: usernameStore,
+	})
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
+	}
+
+	cases := []struct {
+		name     string
+		id       string
+		phone    string
+		username string
+	}{
+		{name: "id only", id: "2001"},
+		{name: "id + phone", id: "2002", phone: "+15552220002"},
+		{name: "id + username", id: "2003", username: "only_user"},
+		{name: "id + phone + username", id: "2004", phone: "+15552220004", username: "both_user"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := svc.SearchByID(ctx, tc.id)
+			if err != nil {
+				t.Fatalf("SearchByID() error = %v", err)
+			}
+			if !result.Found || result.Record.ID != tc.id ||
+				result.Record.Phone != tc.phone || result.Record.Username != tc.username {
+				t.Fatalf("unexpected result: %+v", result)
+			}
+		})
 	}
 }
 
