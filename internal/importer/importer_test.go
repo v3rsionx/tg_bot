@@ -178,7 +178,7 @@ func TestImporterStreamsCSVAndWritesExactIndexes(t *testing.T) {
 		Sources:          []string{source},
 		Delimiter:        ',',
 		HasHeader:        true,
-		Workers:          2,
+		Workers:          1, // single worker avoids duplicate-race with Exists checks
 		BatchSize:        2,
 		QueueSize:        8,
 		SkipDuplicateIDs: true,

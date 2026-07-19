@@ -53,11 +53,13 @@ func (v *Validator) ValidateFields(fields []string, meta Record) (Record, error)
 		return Record{}, fmt.Errorf("%w: invalid id", ErrInvalidRecord)
 	}
 
+	// Invalid phone/username are dropped (cleared) so the ID row still imports.
+	// Dirty dumps often contain usernames with spaces/symbols or short phones.
 	phone := ""
 	if m.Phone >= 0 {
 		phone = normalizePhone(fields[m.Phone])
 		if phone != "" && !validPhone(phone) {
-			return Record{}, fmt.Errorf("%w: invalid phone", ErrInvalidRecord)
+			phone = ""
 		}
 	}
 
@@ -65,7 +67,11 @@ func (v *Validator) ValidateFields(fields []string, meta Record) (Record, error)
 	if m.Username >= 0 {
 		username = normalizeUsername(fields[m.Username])
 		if username != "" && !validUsername(username) {
-			return Record{}, fmt.Errorf("%w: invalid username", ErrInvalidRecord)
+			// Strip emoji/spaces/symbols; keep a-z 0-9 _ when possible.
+			username = sanitizeUsername(username)
+			if username != "" && !validUsername(username) {
+				username = ""
+			}
 		}
 	}
 
@@ -154,6 +160,23 @@ func normalizeUsername(raw string) string {
 	raw = strings.TrimSpace(raw)
 	raw = strings.TrimPrefix(raw, "@")
 	return strings.ToLower(raw)
+}
+
+// sanitizeUsername keeps only Telegram-safe username characters.
+func sanitizeUsername(username string) string {
+	var b strings.Builder
+	b.Grow(len(username))
+	for _, r := range username {
+		switch {
+		case r >= 'a' && r <= 'z':
+			b.WriteRune(r)
+		case r >= '0' && r <= '9':
+			b.WriteRune(r)
+		case r == '_':
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
 }
 
 // validUsername reports whether username matches Telegram-like constraints.

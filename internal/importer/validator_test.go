@@ -101,13 +101,39 @@ func TestValidatorOptionalPhoneAndUsername(t *testing.T) {
 	}
 }
 
-// TestValidatorRejectsInvalidPresentPhoneOrUsername keeps validation when values exist.
-func TestValidatorRejectsInvalidPresentPhoneOrUsername(t *testing.T) {
+// TestValidatorDropsInvalidPhoneOrUsernameKeepsID imports dirty dump rows.
+func TestValidatorDropsInvalidPhoneOrUsernameKeepsID(t *testing.T) {
 	v := NewValidator(Config{IDColumn: 0, PhoneColumn: 1, UsernameColumn: 2}.withDefaults())
-	if _, err := v.ValidateFields([]string{"42", "12", "alice"}, Record{}); err == nil {
-		t.Fatal("expected invalid phone to be rejected")
+
+	got, err := v.ValidateFields([]string{"42", "12", "alice"}, Record{})
+	if err != nil {
+		t.Fatalf("invalid phone should be dropped, got err=%v", err)
 	}
-	if _, err := v.ValidateFields([]string{"42", "+15551110001", "ab"}, Record{}); err == nil {
-		t.Fatal("expected invalid username to be rejected")
+	if got.ID != "42" || got.Phone != "" || got.Username != "alice" {
+		t.Fatalf("got %+v", got)
+	}
+
+	got, err = v.ValidateFields([]string{"42", "+15551110001", "ab"}, Record{})
+	if err != nil {
+		t.Fatalf("invalid username should be dropped, got err=%v", err)
+	}
+	if got.ID != "42" || got.Phone != "+15551110001" || got.Username != "" {
+		t.Fatalf("got %+v", got)
+	}
+
+	got, err = v.ValidateFields([]string{"99", "12", "x!"}, Record{})
+	if err != nil {
+		t.Fatalf("both invalid should still keep id, got err=%v", err)
+	}
+	if got.ID != "99" || got.Phone != "" || got.Username != "" {
+		t.Fatalf("got %+v", got)
+	}
+
+	got, err = v.ValidateFields([]string{"77", "+15551110077", "🔥PeRes_OK✨"}, Record{})
+	if err != nil {
+		t.Fatalf("emoji username should sanitize, got err=%v", err)
+	}
+	if got.Username != "peres_ok" {
+		t.Fatalf("Username = %q, want peres_ok", got.Username)
 	}
 }
