@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -183,9 +184,12 @@ func (s *Service) search(
 // loadByID loads and decodes a full record from the ID database.
 func (s *Service) loadByID(ctx context.Context, id string) (Record, error) {
 	payload, err := s.stores.ID.Get(ctx, []byte(id))
+	// Temporary debug logging — remove after LMDB path/payload investigation.
 	if err != nil {
+		log.Printf("search debug loadByID id=%q get_not_found=%v err=%v", id, errors.Is(err, lmdb.ErrNotFound), err)
 		return Record{}, err
 	}
+	log.Printf("search debug loadByID id=%q payload_len=%d payload_hex=%x", id, len(payload), payload)
 	return decodeIDPayload(id, payload)
 }
 
