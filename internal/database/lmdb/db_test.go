@@ -134,9 +134,10 @@ func TestDBReaderWriterAndCursor(t *testing.T) {
 // TestDBAutoMapResizeRetriesAfterMapFull verifies automatic growth.
 func TestDBAutoMapResizeRetriesAfterMapFull(t *testing.T) {
 	ctx := context.Background()
+	const initial int64 = 64 << 10 // 64 KiB — enough to open a named DBI
 	db, err := lmdb.OpenDB(ctx, lmdb.Config{
 		Path:           t.TempDir(),
-		InitialMapSize: 8 << 10,
+		InitialMapSize: initial,
 		MaxMapSize:     64 << 20,
 		MapGrowth:      1 << 20,
 		MaxReaders:     64,
@@ -162,8 +163,8 @@ func TestDBAutoMapResizeRetriesAfterMapFull(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Stats() error = %v", err)
 	}
-	if stats.MapSize <= 8<<10 {
-		t.Fatalf("MapSize = %d, want growth above initial size", stats.MapSize)
+	if stats.MapSize <= initial {
+		t.Fatalf("MapSize = %d, want growth above initial size %d", stats.MapSize, initial)
 	}
 }
 

@@ -120,19 +120,31 @@ func runImport(ctx context.Context, sources []string) (importer.Statistics, erro
 		return importer.Statistics{}, err
 	}
 
-	idDB, err := lmdb.OpenDB(ctx, lmdb.Config{Path: cfg.LMDBIDPath})
+	// Large dumps need a bigger starting map; auto-growth still applies.
+	const largeMapSize int64 = 16 << 30 // 16 GiB
+
+	idDB, err := lmdb.OpenDB(ctx, lmdb.Config{
+		Path:           cfg.LMDBIDPath,
+		InitialMapSize: largeMapSize,
+	})
 	if err != nil {
 		return importer.Statistics{}, fmt.Errorf("open lmdb id: %w", err)
 	}
 	defer func() { _ = idDB.Close() }()
 
-	phoneDB, err := lmdb.OpenDB(ctx, lmdb.Config{Path: cfg.LMDBPhonePath})
+	phoneDB, err := lmdb.OpenDB(ctx, lmdb.Config{
+		Path:           cfg.LMDBPhonePath,
+		InitialMapSize: largeMapSize,
+	})
 	if err != nil {
 		return importer.Statistics{}, fmt.Errorf("open lmdb phone: %w", err)
 	}
 	defer func() { _ = phoneDB.Close() }()
 
-	userDB, err := lmdb.OpenDB(ctx, lmdb.Config{Path: cfg.LMDBUsernamePath})
+	userDB, err := lmdb.OpenDB(ctx, lmdb.Config{
+		Path:           cfg.LMDBUsernamePath,
+		InitialMapSize: largeMapSize,
+	})
 	if err != nil {
 		return importer.Statistics{}, fmt.Errorf("open lmdb username: %w", err)
 	}
@@ -145,6 +157,8 @@ func runImport(ctx context.Context, sources []string) (importer.Statistics, erro
 		BatchSize:        cfg.BatchSize,
 		UpdateExisting:   true,
 		SkipDuplicateIDs: false,
+		Resume:           true,
+		CheckpointPath:   "data/importer.checkpoint.json",
 		ProgressInterval: 2 * time.Second,
 	}.WithAutoMapHeaders(true)
 

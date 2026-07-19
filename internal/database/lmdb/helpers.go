@@ -1,6 +1,8 @@
 package lmdb
 
 import (
+	"errors"
+
 	rawlmdb "github.com/bmatsuo/lmdb-go/lmdb"
 )
 
@@ -39,8 +41,15 @@ func isNotFound(err error) bool {
 }
 
 // isMapFull reports whether err indicates the LMDB map must grow.
+// Unwraps fmt.Errorf wrappers so BatchPut/Get paths still trigger auto-growth.
 func isMapFull(err error) bool {
-	return rawlmdb.IsMapFull(err)
+	for err != nil {
+		if rawlmdb.IsMapFull(err) {
+			return true
+		}
+		err = errors.Unwrap(err)
+	}
+	return false
 }
 
 // mapNotFound converts LMDB not-found errors into ErrNotFound.

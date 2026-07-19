@@ -103,6 +103,12 @@ func (db *DB) Open(ctx context.Context) error {
 		return err
 	}
 
+	// Sync tracked map size with the live environment (may already be larger
+	// than InitialMapSize after prior growth or another process).
+	if info, infoErr := env.Info(); infoErr == nil && info.MapSize > 0 {
+		db.mapSize = int64(info.MapSize)
+	}
+
 	db.env = env
 	db.dbi = dbi
 	db.opened = true
