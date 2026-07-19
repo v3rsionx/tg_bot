@@ -20,8 +20,10 @@ func newTestModule(t *testing.T, owners ...int64) (*service.Module, *memoryUsers
 			Found: true,
 			Record: search.Record{
 				ID:       "1001",
+				Name:     "Alice",
 				Phone:    "+15551110001",
 				Username: "alice",
+				Extras:   `{"access_hash":"1"}`,
 			},
 			QueryType: search.QueryTypeID,
 			Query:     "1001",

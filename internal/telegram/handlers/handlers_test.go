@@ -2,6 +2,7 @@ package handlers_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/go-telegram/bot"
@@ -102,7 +103,8 @@ func TestDefaultHandlerRoutesUnknownCommandAndText(t *testing.T) {
 		Logger:    stubLogger{},
 		Responder: responder,
 		Search: stubSearch{result: handlers.SearchResult{
-			Found: true, ID: "1", Phone: "+1", Username: "a",
+			Found: true, ID: "1", Name: "Ada", Phone: "+1", Username: "a",
+			Extras: `{"access_hash":"9"}`,
 		}},
 	})
 
@@ -110,5 +112,9 @@ func TestDefaultHandlerRoutesUnknownCommandAndText(t *testing.T) {
 	h.Default()(context.Background(), nil, messageUpdate(1, "+15551112222"))
 	if len(responder.texts) != 2 {
 		t.Fatalf("replies = %d, want 2", len(responder.texts))
+	}
+	if !strings.Contains(responder.texts[1], "Name: Ada") ||
+		!strings.Contains(responder.texts[1], `Extras: {"access_hash":"9"}`) {
+		t.Fatalf("search reply missing name/extras: %q", responder.texts[1])
 	}
 }

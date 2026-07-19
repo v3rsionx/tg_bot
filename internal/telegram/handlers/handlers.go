@@ -156,7 +156,7 @@ func (h *Handlers) Message() bot.HandlerFunc {
 			h.reply(ctx, chatID, "No exact match found.")
 			return
 		}
-		h.reply(ctx, chatID, fmt.Sprintf("ID: %s\nPhone: %s\nUsername: %s", result.ID, result.Phone, result.Username))
+		h.reply(ctx, chatID, formatSearchResult(result))
 	}
 }
 
@@ -204,6 +204,21 @@ func (h *Handlers) ErrorHandler() bot.ErrorsHandler {
 		}
 		h.deps.Logger.Errorf("bot error: %v", err)
 	}
+}
+
+// formatSearchResult renders an exact-lookup hit for Telegram replies.
+func formatSearchResult(result SearchResult) string {
+	extras := result.Extras
+	if extras == "{}" {
+		extras = ""
+	}
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf("ID: %s\n", result.ID))
+	b.WriteString(fmt.Sprintf("Name: %s\n", result.Name))
+	b.WriteString(fmt.Sprintf("Phone: %s\n", result.Phone))
+	b.WriteString(fmt.Sprintf("Username: %s\n", result.Username))
+	b.WriteString(fmt.Sprintf("Extras: %s", extras))
+	return b.String()
 }
 
 // reply sends text using the injected responder when available.

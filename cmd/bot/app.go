@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 	"runtime"
 	"time"
 
@@ -124,15 +123,6 @@ func buildApp(ctx context.Context) (*app, error) {
 		"phone":    cfg.LMDBPhonePath,
 		"username": cfg.LMDBUsernamePath,
 	})
-	// Temporary debug logging — remove after LMDB path/payload investigation.
-	if idAbs, err := filepath.Abs(cfg.LMDBIDPath); err != nil {
-		a.log.Warn("LMDB ID path abs resolve failed", applogger.Fields{
-			"id":  cfg.LMDBIDPath,
-			"err": err.Error(),
-		})
-	} else {
-		a.log.Info("LMDB ID directory (absolute)", applogger.Fields{"id_abs": idAbs})
-	}
 
 	// 8) Initialize search engine
 	engine, err := search.New(search.Config{

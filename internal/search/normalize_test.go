@@ -27,34 +27,56 @@ func TestNormalizeUsernameExactMatchRules(t *testing.T) {
 // TestDecodeIDPayloadRoundTrip verifies importer-compatible payload decoding.
 func TestDecodeIDPayloadRoundTrip(t *testing.T) {
 	tests := []struct {
-		name     string
-		id       string
-		payload  []byte
-		want     Record
+		name    string
+		id      string
+		payload []byte
+		want    Record
 	}{
 		{
 			name:    "id only",
 			id:      "6473397867",
-			payload: []byte{0},
+			payload: []byte{0, 0, 0},
 			want:    Record{ID: "6473397867"},
 		},
 		{
 			name:    "id + phone",
 			id:      "1001",
-			payload: append([]byte("+15551110001"), 0),
+			payload: append([]byte("+15551110001"), 0, 0, 0),
 			want:    Record{ID: "1001", Phone: "+15551110001"},
 		},
 		{
 			name:    "id + username",
 			id:      "1002",
-			payload: append([]byte{0}, []byte("alice_one")...),
+			payload: append([]byte{0}, append([]byte("alice_one"), 0, 0)...),
 			want:    Record{ID: "1002", Username: "alice_one"},
 		},
 		{
-			name:    "id + phone + username",
-			id:      "1003",
-			payload: append(append([]byte("+15551110003"), 0), []byte("bob")...),
-			want:    Record{ID: "1003", Phone: "+15551110003", Username: "bob"},
+			name: "id + phone + username",
+			id:   "1003",
+			payload: append(
+				append(append([]byte("+15551110003"), 0), []byte("bob")...),
+				0, 0,
+			),
+			want: Record{ID: "1003", Phone: "+15551110003", Username: "bob"},
+		},
+		{
+			name: "id + name + extras",
+			id:   "6473397867",
+			payload: append(
+				append([]byte{0, 0}, []byte("Fabiana Umbelino")...),
+				append([]byte{0}, []byte(`{"access_hash":"8129359283721321484"}`)...)...,
+			),
+			want: Record{
+				ID:     "6473397867",
+				Name:   "Fabiana Umbelino",
+				Extras: `{"access_hash":"8129359283721321484"}`,
+			},
+		},
+		{
+			name:    "legacy two-field payload",
+			id:      "1004",
+			payload: append(append([]byte("+15551110004"), 0), []byte("legacy_user")...),
+			want:    Record{ID: "1004", Phone: "+15551110004", Username: "legacy_user"},
 		},
 	}
 

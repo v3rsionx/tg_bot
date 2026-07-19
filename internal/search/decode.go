@@ -5,12 +5,17 @@ import (
 	"fmt"
 )
 
-// decodeIDPayload parses the importer ID payload format: phone\0username.
+// decodeIDPayload parses the importer ID payload format:
+//
+//	phone\0username\0name\0extras
+//
+// Legacy payloads phone\0username (2 fields) remain valid; name and extras
+// are empty in that case.
 func decodeIDPayload(id string, payload []byte) (Record, error) {
 	if payload == nil {
 		return Record{}, fmt.Errorf("%w: empty payload", ErrNotFound)
 	}
-	parts := bytes.SplitN(payload, []byte{0}, 2)
+	parts := bytes.SplitN(payload, []byte{0}, 4)
 	record := Record{ID: id}
 	if len(parts) > 0 {
 		record.Phone = string(parts[0])
@@ -18,7 +23,12 @@ func decodeIDPayload(id string, payload []byte) (Record, error) {
 	if len(parts) > 1 {
 		record.Username = string(parts[1])
 	}
-	// ID-only records (empty phone and username) are valid when the key exists.
+	if len(parts) > 2 {
+		record.Name = string(parts[2])
+	}
+	if len(parts) > 3 {
+		record.Extras = string(parts[3])
+	}
 	return record, nil
 }
 

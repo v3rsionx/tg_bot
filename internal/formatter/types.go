@@ -5,8 +5,10 @@ import "time"
 // SearchResult is a single searchable record for display.
 type SearchResult struct {
 	ID       string
+	Name     string
 	Phone    string
 	Username string
+	Extras   string
 	Found    bool
 	Type     string
 	Latency  time.Duration

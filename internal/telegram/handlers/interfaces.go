@@ -30,8 +30,10 @@ type Points interface {
 type SearchResult struct {
 	Found    bool
 	ID       string
+	Name     string
 	Phone    string
 	Username string
+	Extras   string
 }
 
 // Search exposes an exact-lookup port used by text handlers.

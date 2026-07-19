@@ -13,15 +13,17 @@ import (
 
 // SearchOutcome is the structured business result of an exact lookup.
 type SearchOutcome struct {
-	Found     bool
-	ID        string
-	Phone     string
-	Username  string
-	Query     string
-	QueryType string
-	Latency   time.Duration
+	Found      bool
+	ID         string
+	Name       string
+	Phone      string
+	Username   string
+	Extras     string
+	Query      string
+	QueryType  string
+	Latency    time.Duration
 	PointsUsed int64
-	CacheHit  bool
+	CacheHit   bool
 }
 
 // SearchService orchestrates validation, points, exact lookup, and history.
@@ -171,8 +173,10 @@ func (s *SearchService) execute(ctx context.Context, userID int64, query string,
 	outcome.Found = result.Found
 	outcome.CacheHit = result.CacheHit
 	outcome.ID = result.Record.ID
+	outcome.Name = result.Record.Name
 	outcome.Phone = result.Record.Phone
 	outcome.Username = result.Record.Username
+	outcome.Extras = result.Record.Extras
 	if outcome.Query == "" {
 		outcome.Query = result.Query
 	}

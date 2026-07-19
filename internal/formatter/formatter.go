@@ -50,11 +50,17 @@ func (f *Formatter) SearchResult(r SearchResult) string {
 	if r.ID != "" {
 		b.WriteString(m.escape("ID: ") + m.code(r.ID) + "\n")
 	}
+	if r.Name != "" {
+		b.WriteString(m.escape("Name: ") + m.escape(r.Name) + "\n")
+	}
 	if r.Phone != "" {
 		b.WriteString(m.escape("Phone: ") + m.code(r.Phone) + "\n")
 	}
 	if r.Username != "" {
 		b.WriteString(m.escape("Username: ") + m.code("@"+strings.TrimPrefix(r.Username, "@")) + "\n")
+	}
+	if extras := strings.TrimSpace(r.Extras); extras != "" && extras != "{}" {
+		b.WriteString(m.escape("Extras: ") + m.code(extras) + "\n")
 	}
 	if r.Latency > 0 {
 		b.WriteString(m.escape("Latency: ") + m.escape(r.Latency.String()))

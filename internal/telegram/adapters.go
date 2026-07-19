@@ -23,8 +23,10 @@ func (b searchBridge) ExactLookup(ctx context.Context, userID int64, query strin
 	return handlers.SearchResult{
 		Found:    result.Found,
 		ID:       result.ID,
+		Name:     result.Name,
 		Phone:    result.Phone,
 		Username: result.Username,
+		Extras:   result.Extras,
 	}, nil
 }
 

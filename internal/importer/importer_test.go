@@ -61,9 +61,10 @@ func TestImporterReadsConverterStandardCSV(t *testing.T) {
 	if err != nil {
 		t.Fatalf("id get: %v", err)
 	}
-	// LMDB encoding unchanged: phone\0username (extras not persisted yet).
-	if string(payload) != "+15551110001\x00fabiana" {
-		t.Fatalf("payload = %q", payload)
+	wantPayload := "+15551110001\x00fabiana\x00Fabiana Umbelino\x00" +
+		`{"access_hash":"81293","country":"BR"}`
+	if string(payload) != wantPayload {
+		t.Fatalf("payload = %q, want %q", payload, wantPayload)
 	}
 }
 
@@ -135,8 +136,22 @@ func TestImporterAcceptsOptionalPhoneUsernameCombinations(t *testing.T) {
 	if err != nil {
 		t.Fatalf("id 1001 get: %v", err)
 	}
-	if string(payload) != "\x00" {
-		t.Fatalf("id-only payload = %q, want phone\\0username empty", payload)
+	if string(payload) != "\x00\x00\x00{}" {
+		t.Fatalf("id-only payload = %q, want phone\\0username\\0name\\0{}", payload)
+	}
+	namePayload, err := idStore.Get(context.Background(), []byte("1002"))
+	if err != nil {
+		t.Fatalf("id 1002 get: %v", err)
+	}
+	if string(namePayload) != "\x00\x00Only Name\x00{}" {
+		t.Fatalf("name payload = %q", namePayload)
+	}
+	extrasPayload, err := idStore.Get(context.Background(), []byte("1003"))
+	if err != nil {
+		t.Fatalf("id 1003 get: %v", err)
+	}
+	if string(extrasPayload) != "\x00\x00\x00"+`{"access_hash":"1"}` {
+		t.Fatalf("extras payload = %q", extrasPayload)
 	}
 }
 

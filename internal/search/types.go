@@ -21,8 +21,10 @@ const (
 // Record is the strongly typed full record returned by exact lookups.
 type Record struct {
 	ID       string
+	Name     string
 	Phone    string
 	Username string
+	Extras   string
 }
 
 // Result contains a lookup outcome with timing and cache metadata.

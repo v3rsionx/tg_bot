@@ -72,13 +72,11 @@ func (w *indexWriter) Handle(ctx context.Context, record Record) error {
 		return nil
 	}
 
-	// Extras/Name are retained on Record in memory but intentionally not encoded
-	// into LMDB until persistence support is added.
 	if record.Extras != "" && record.Extras != "{}" {
 		w.stats.extrasRetained.Add(1)
 	}
 
-	payload := encodeIDPayload(record.Phone, record.Username)
+	payload := encodeIDPayload(record.Phone, record.Username, record.Name, record.Extras)
 	w.idBatch = append(w.idBatch, lmdb.KeyValue{
 		Key:   []byte(record.ID),
 		Value: payload,
@@ -162,12 +160,17 @@ func (w *indexWriter) saveCheckpoint() error {
 	return nil
 }
 
-// encodeIDPayload stores exact phone/username companions for an ID key.
-func encodeIDPayload(phone, username string) []byte {
-	// Compact and allocation-friendly payload: phone\0username
-	buf := make([]byte, 0, len(phone)+1+len(username))
+// encodeIDPayload stores companions for an ID key as:
+//
+//	phone\0username\0name\0extras
+func encodeIDPayload(phone, username, name, extras string) []byte {
+	buf := make([]byte, 0, len(phone)+1+len(username)+1+len(name)+1+len(extras))
 	buf = append(buf, phone...)
 	buf = append(buf, 0)
 	buf = append(buf, username...)
+	buf = append(buf, 0)
+	buf = append(buf, name...)
+	buf = append(buf, 0)
+	buf = append(buf, extras...)
 	return buf
 }

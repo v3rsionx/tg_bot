@@ -24,8 +24,10 @@ func (a TelegramSearch) ExactLookup(ctx context.Context, userID int64, query str
 	return telegram.SearchResult{
 		Found:    outcome.Found,
 		ID:       outcome.ID,
+		Name:     outcome.Name,
 		Phone:    outcome.Phone,
 		Username: outcome.Username,
+		Extras:   outcome.Extras,
 	}, nil
 }
 

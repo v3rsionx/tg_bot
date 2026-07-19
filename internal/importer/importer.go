@@ -163,7 +163,7 @@ func (im *Importer) importFile(ctx context.Context, path string, stats *statsAcc
 	writerWG.Wait()
 
 	if retained := stats.extrasRetained.Load(); retained > 0 {
-		im.log.Warnf("%s: retained extras in memory for %d rows (not persisted to LMDB yet)", path, retained)
+		im.log.Infof("%s: persisted extras for %d rows", path, retained)
 	}
 
 	select {

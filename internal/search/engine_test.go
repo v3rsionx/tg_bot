@@ -18,7 +18,7 @@ func seedStores(t *testing.T) search.Stores {
 	usernameStore := newMemoryEngine()
 
 	ctx := context.Background()
-	payload := append(append([]byte("+15551110001"), 0), []byte("alice_one")...)
+	payload := []byte("+15551110001\x00alice_one\x00Alice One\x00{}")
 	if err := idStore.Put(ctx, []byte("1001"), payload); err != nil {
 		t.Fatalf("Put(id) error = %v", err)
 	}
@@ -67,15 +67,23 @@ func TestSearchByIDOptionalPhoneUsernameCombinations(t *testing.T) {
 		payload  []byte
 		phone    string
 		username string
+		name     string
+		extras   string
 	}{
-		{id: "2001", payload: []byte{0}},
-		{id: "2002", payload: append([]byte("+15552220002"), 0), phone: "+15552220002"},
-		{id: "2003", payload: append([]byte{0}, []byte("only_user")...), username: "only_user"},
+		{id: "2001", payload: []byte{0, 0, 0}},
+		{id: "2002", payload: []byte("+15552220002\x00\x00\x00"), phone: "+15552220002"},
+		{id: "2003", payload: []byte("\x00only_user\x00\x00"), username: "only_user"},
 		{
 			id:       "2004",
-			payload:  append(append([]byte("+15552220004"), 0), []byte("both_user")...),
+			payload:  []byte("+15552220004\x00both_user\x00\x00"),
 			phone:    "+15552220004",
 			username: "both_user",
+		},
+		{
+			id:      "2005",
+			payload: []byte("\x00\x00Fabiana\x00{\"access_hash\":\"1\"}"),
+			name:    "Fabiana",
+			extras:  `{"access_hash":"1"}`,
 		},
 	}
 	for _, f := range fixtures {
@@ -106,11 +114,14 @@ func TestSearchByIDOptionalPhoneUsernameCombinations(t *testing.T) {
 		id       string
 		phone    string
 		username string
+		recName  string
+		extras   string
 	}{
 		{name: "id only", id: "2001"},
 		{name: "id + phone", id: "2002", phone: "+15552220002"},
 		{name: "id + username", id: "2003", username: "only_user"},
 		{name: "id + phone + username", id: "2004", phone: "+15552220004", username: "both_user"},
+		{name: "id + name + extras", id: "2005", recName: "Fabiana", extras: `{"access_hash":"1"}`},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -119,7 +130,8 @@ func TestSearchByIDOptionalPhoneUsernameCombinations(t *testing.T) {
 				t.Fatalf("SearchByID() error = %v", err)
 			}
 			if !result.Found || result.Record.ID != tc.id ||
-				result.Record.Phone != tc.phone || result.Record.Username != tc.username {
+				result.Record.Phone != tc.phone || result.Record.Username != tc.username ||
+				result.Record.Name != tc.recName || result.Record.Extras != tc.extras {
 				t.Fatalf("unexpected result: %+v", result)
 			}
 		})
