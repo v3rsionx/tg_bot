@@ -112,7 +112,15 @@ func (im *Importer) importFile(ctx context.Context, path string, stats *statsAcc
 	if resumeOffset > 0 {
 		stats.bytesRead.Add(resumeOffset)
 	}
-	im.log.Infof("importing %s (resume offset=%d line=%d size=%d)", path, resumeOffset, resumeLine, total)
+
+	mapping, skipDetectedHeader, err := im.resolveMapping(path)
+	if err != nil {
+		return err
+	}
+	im.validator.SetMapping(mapping)
+	im.log.Infof("importing %s (resume offset=%d line=%d size=%d mapping=%s id=%d name=%d phone=%d username=%d extras=%d)",
+		path, resumeOffset, resumeLine, total, mapping.Source,
+		mapping.ID, mapping.Name, mapping.Phone, mapping.Username, mapping.Extras)
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -148,11 +156,15 @@ func (im *Importer) importFile(ctx context.Context, path string, stats *statsAcc
 		sendErr(im.writeLoop(ctx, writes, stats))
 	}()
 
-	readErr := im.readLoop(ctx, path, reader, resumeOffset, resumeLine, jobs, stats)
+	readErr := im.readLoop(ctx, path, reader, resumeOffset, resumeLine, skipDetectedHeader, jobs, stats)
 	close(jobs)
 	workerWG.Wait()
 	close(writes)
 	writerWG.Wait()
+
+	if retained := stats.extrasRetained.Load(); retained > 0 {
+		im.log.Warnf("%s: retained extras in memory for %d rows (not persisted to LMDB yet)", path, retained)
+	}
 
 	select {
 	case err := <-errCh:
@@ -168,6 +180,26 @@ func (im *Importer) importFile(ctx context.Context, path string, stats *statsAcc
 	return nil
 }
 
+// resolveMapping chooses header-based or config-based column mapping for path.
+func (im *Importer) resolveMapping(path string) (ColumnMapping, bool, error) {
+	fallback := mappingFromConfig(im.cfg)
+	if !im.cfg.AutoMapHeaders && !im.cfg.HasHeader {
+		return fallback, false, nil
+	}
+	if !im.cfg.AutoMapHeaders {
+		// Explicit HasHeader with fixed indexes: skip header, keep config mapping.
+		return fallback, im.cfg.HasHeader, nil
+	}
+	detected, ok, err := peekHeaderMapping(path, im.cfg.Delimiter, im.cfg.ReadBufferBytes)
+	if err != nil {
+		return ColumnMapping{}, false, err
+	}
+	if ok {
+		return detected, true, nil
+	}
+	return fallback, im.cfg.HasHeader, nil
+}
+
 // readLoop streams source lines into the worker queue.
 func (im *Importer) readLoop(
 	ctx context.Context,
@@ -175,11 +207,12 @@ func (im *Importer) readLoop(
 	reader *lineReader,
 	resumeOffset int64,
 	resumeLine uint64,
+	skipHeader bool,
 	jobs chan<- rawJob,
 	stats *statsAccumulator,
 ) error {
 	lineNo := resumeLine
-	skipHeader := im.cfg.HasHeader && resumeLine == 0
+	skipHeader = skipHeader && resumeLine == 0
 	prevOffset := resumeOffset
 
 	for {
@@ -311,7 +344,7 @@ func (im *Importer) reportProgress(ctx context.Context, stats *statsAccumulator)
 // FormatStatistics returns a concise human-readable statistics summary.
 func FormatStatistics(stats Statistics) string {
 	return fmt.Sprintf(
-		"files=%d/%d bytes=%d/%d lines=%d inserts=%d updates=%d duplicates=%d invalid=%d batches=%d rate=%.0f/s",
+		"files=%d/%d bytes=%d/%d lines=%d inserts=%d updates=%d duplicates=%d invalid=%d batches=%d extras_retained=%d rate=%.0f/s",
 		stats.FilesCompleted,
 		stats.FilesTotal,
 		stats.BytesRead,
@@ -322,6 +355,7 @@ func FormatStatistics(stats Statistics) string {
 		stats.Duplicates,
 		stats.RecordsInvalid,
 		stats.BatchesWritten,
+		stats.ExtrasRetained,
 		stats.RecordsPerSecond,
 	)
 }

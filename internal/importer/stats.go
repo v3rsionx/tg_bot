@@ -25,6 +25,7 @@ type statsAccumulator struct {
 	phoneWrites    atomic.Uint64
 	usernameWrites atomic.Uint64
 	batchesWritten atomic.Uint64
+	extrasRetained atomic.Uint64
 }
 
 // newStatsAccumulator constructs counters for an import run.
@@ -103,6 +104,7 @@ func (s *statsAccumulator) snapshot(now time.Time) Statistics {
 		PhoneWrites:      s.phoneWrites.Load(),
 		UsernameWrites:   s.usernameWrites.Load(),
 		BatchesWritten:   s.batchesWritten.Load(),
+		ExtrasRetained:   s.extrasRetained.Load(),
 		StartedAt:        startedAt,
 		FinishedAt:       finishedAt,
 		RecordsPerSecond: recordsPerSec,

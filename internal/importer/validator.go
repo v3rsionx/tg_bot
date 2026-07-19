@@ -3,60 +3,90 @@ package importer
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"unicode"
 )
 
 // Validator validates and normalizes parsed source fields.
 type Validator struct {
-	idColumn       int
-	phoneColumn    int
-	usernameColumn int
+	mu      sync.RWMutex
+	mapping ColumnMapping
 }
 
 // NewValidator constructs a Validator using configured column indexes.
 func NewValidator(cfg Config) *Validator {
-	return &Validator{
-		idColumn:       cfg.IDColumn,
-		phoneColumn:    cfg.PhoneColumn,
-		usernameColumn: cfg.UsernameColumn,
-	}
+	return &Validator{mapping: mappingFromConfig(cfg)}
+}
+
+// SetMapping replaces the active column mapping (per-file header resolution).
+func (v *Validator) SetMapping(m ColumnMapping) {
+	v.mu.Lock()
+	v.mapping = m
+	v.mu.Unlock()
+}
+
+// Mapping returns the active column mapping.
+func (v *Validator) Mapping() ColumnMapping {
+	v.mu.RLock()
+	defer v.mu.RUnlock()
+	return v.mapping
 }
 
 // ValidateFields validates fields and returns a normalized Record.
 func (v *Validator) ValidateFields(fields []string, meta Record) (Record, error) {
-	maxCol := v.idColumn
-	if v.phoneColumn > maxCol {
-		maxCol = v.phoneColumn
+	m := v.Mapping()
+	maxCol := m.ID
+	for _, idx := range []int{m.Name, m.Phone, m.Username, m.Extras} {
+		if idx > maxCol {
+			maxCol = idx
+		}
 	}
-	if v.usernameColumn > maxCol {
-		maxCol = v.usernameColumn
+	if m.ID < 0 {
+		return Record{}, fmt.Errorf("%w: id column is not mapped", ErrInvalidRecord)
 	}
 	if len(fields) <= maxCol {
 		return Record{}, fmt.Errorf("%w: insufficient columns", ErrInvalidRecord)
 	}
 
-	id := strings.TrimSpace(fields[v.idColumn])
+	id := strings.TrimSpace(fields[m.ID])
 	if !validID(id) {
 		return Record{}, fmt.Errorf("%w: invalid id", ErrInvalidRecord)
 	}
 
-	phone := normalizePhone(fields[v.phoneColumn])
-	if phone != "" && !validPhone(phone) {
-		return Record{}, fmt.Errorf("%w: invalid phone", ErrInvalidRecord)
+	phone := ""
+	if m.Phone >= 0 {
+		phone = normalizePhone(fields[m.Phone])
+		if phone != "" && !validPhone(phone) {
+			return Record{}, fmt.Errorf("%w: invalid phone", ErrInvalidRecord)
+		}
 	}
 
-	username := normalizeUsername(fields[v.usernameColumn])
-	if username != "" && !validUsername(username) {
-		return Record{}, fmt.Errorf("%w: invalid username", ErrInvalidRecord)
+	username := ""
+	if m.Username >= 0 {
+		username = normalizeUsername(fields[m.Username])
+		if username != "" && !validUsername(username) {
+			return Record{}, fmt.Errorf("%w: invalid username", ErrInvalidRecord)
+		}
 	}
 
-	if phone == "" && username == "" {
-		return Record{}, fmt.Errorf("%w: phone and username are both empty", ErrInvalidRecord)
+	name := ""
+	if m.Name >= 0 && m.Name < len(fields) {
+		name = strings.TrimSpace(fields[m.Name])
+	}
+
+	extras := ""
+	if m.Extras >= 0 && m.Extras < len(fields) {
+		extras = strings.TrimSpace(fields[m.Extras])
+		if extras == "" {
+			extras = "{}"
+		}
 	}
 
 	meta.ID = id
+	meta.Name = name
 	meta.Phone = phone
 	meta.Username = username
+	meta.Extras = extras
 	return meta, nil
 }
 
@@ -94,7 +124,6 @@ func normalizePhone(raw string) string {
 		if unicode.IsSpace(r) || r == '-' || r == '(' || r == ')' {
 			continue
 		}
-		// Keep unexpected characters so validation can reject the value.
 		b.WriteRune(r)
 	}
 	return b.String()

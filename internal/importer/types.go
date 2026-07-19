@@ -33,11 +33,16 @@ func (s Stores) Validate() error {
 // Record is a validated source row ready for indexing.
 type Record struct {
 	ID       string
+	Name     string
 	Phone    string
 	Username string
-	File     string
-	Line     uint64
-	Offset   int64
+	// Extras holds the converter JSON extras payload when present.
+	// It is retained in memory through the import pipeline; LMDB encoding
+	// does not persist it yet.
+	Extras string
+	File   string
+	Line   uint64
+	Offset int64
 }
 
 // Statistics captures cumulative import counters and speed metrics.
@@ -55,6 +60,9 @@ type Statistics struct {
 	PhoneWrites      uint64
 	UsernameWrites   uint64
 	BatchesWritten   uint64
+	// ExtrasRetained counts rows that carried extras in memory but were not
+	// written to LMDB (persistence not implemented yet).
+	ExtrasRetained   uint64
 	StartedAt        time.Time
 	FinishedAt       time.Time
 	RecordsPerSecond float64

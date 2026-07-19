@@ -10,6 +10,136 @@ import (
 	"github.com/v3rsionx/tg_bot/internal/importer"
 )
 
+// TestImporterReadsConverterStandardCSV maps id,name,phone,username,extras.
+func TestImporterReadsConverterStandardCSV(t *testing.T) {
+	dir := t.TempDir()
+	source := filepath.Join(dir, "standard.csv")
+	content := "id,name,phone,username,extras\n" +
+		`6473397867,"Fabiana Umbelino",+15551110001,fabiana,"{""access_hash"":""81293"",""country"":""BR""}"` + "\n" +
+		"1002,Ana Silva,+15551110002,ana,{}\n"
+	if err := os.WriteFile(source, []byte(content), 0o644); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
+	}
+
+	idStore := newMemoryEngine()
+	phoneStore := newMemoryEngine()
+	usernameStore := newMemoryEngine()
+
+	im, err := importer.New(importer.Config{
+		Sources:   []string{source},
+		Delimiter: ',',
+		Workers:   1,
+		BatchSize: 10,
+	}, importer.Stores{
+		ID:       idStore,
+		Phone:    phoneStore,
+		Username: usernameStore,
+	}, importer.NopLogger{}, nil)
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
+	}
+
+	stats, err := im.Run(context.Background())
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	if stats.Inserts != 2 {
+		t.Fatalf("Inserts = %d, want 2", stats.Inserts)
+	}
+	if stats.ExtrasRetained != 1 {
+		t.Fatalf("ExtrasRetained = %d, want 1 (non-empty extras row)", stats.ExtrasRetained)
+	}
+	gotPhone, err := phoneStore.Get(context.Background(), []byte("+15551110001"))
+	if err != nil || string(gotPhone) != "6473397867" {
+		t.Fatalf("phone lookup = %q err=%v", gotPhone, err)
+	}
+	gotUser, err := usernameStore.Get(context.Background(), []byte("fabiana"))
+	if err != nil || string(gotUser) != "6473397867" {
+		t.Fatalf("username lookup = %q err=%v", gotUser, err)
+	}
+	payload, err := idStore.Get(context.Background(), []byte("6473397867"))
+	if err != nil {
+		t.Fatalf("id get: %v", err)
+	}
+	// LMDB encoding unchanged: phone\0username (extras not persisted yet).
+	if string(payload) != "+15551110001\x00fabiana" {
+		t.Fatalf("payload = %q", payload)
+	}
+}
+
+// TestImporterAcceptsOptionalPhoneUsernameCombinations covers ID-centric rows.
+func TestImporterAcceptsOptionalPhoneUsernameCombinations(t *testing.T) {
+	dir := t.TempDir()
+	source := filepath.Join(dir, "optional.csv")
+	content := "id,name,phone,username,extras\n" +
+		"1001,,,,\n" + // id only
+		"1002,Only Name,,,\n" + // id + name
+		`1003,,,,"{""access_hash"":""1"}"` + "\n" + // id + extras
+		"1004,,+15551110004,,\n" + // id + phone
+		"1005,,,alice_only,\n" + // id + username
+		"1006,,+15551110006,both_user,\n" // id + phone + username
+	if err := os.WriteFile(source, []byte(content), 0o644); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
+	}
+
+	idStore := newMemoryEngine()
+	phoneStore := newMemoryEngine()
+	usernameStore := newMemoryEngine()
+
+	im, err := importer.New(importer.Config{
+		Sources:   []string{source},
+		Delimiter: ',',
+		Workers:   1,
+		BatchSize: 10,
+	}, importer.Stores{
+		ID:       idStore,
+		Phone:    phoneStore,
+		Username: usernameStore,
+	}, importer.NopLogger{}, nil)
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
+	}
+
+	stats, err := im.Run(context.Background())
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	if stats.Inserts != 6 {
+		t.Fatalf("Inserts = %d, want 6; invalid=%d", stats.Inserts, stats.RecordsInvalid)
+	}
+	if stats.RecordsInvalid != 0 {
+		t.Fatalf("RecordsInvalid = %d, want 0", stats.RecordsInvalid)
+	}
+	if stats.ExtrasRetained != 1 {
+		t.Fatalf("ExtrasRetained = %d, want 1", stats.ExtrasRetained)
+	}
+
+	for _, id := range []string{"1001", "1002", "1003", "1004", "1005", "1006"} {
+		if _, err := idStore.Get(context.Background(), []byte(id)); err != nil {
+			t.Fatalf("missing id %s: %v", id, err)
+		}
+	}
+	// Empty phone/username must not create reverse indexes.
+	if phoneStore.Len() != 2 || usernameStore.Len() != 2 {
+		t.Fatalf("phone/username sizes = %d/%d, want 2/2", phoneStore.Len(), usernameStore.Len())
+	}
+	gotPhone, err := phoneStore.Get(context.Background(), []byte("+15551110004"))
+	if err != nil || string(gotPhone) != "1004" {
+		t.Fatalf("phone 1004 = %q err=%v", gotPhone, err)
+	}
+	gotUser, err := usernameStore.Get(context.Background(), []byte("alice_only"))
+	if err != nil || string(gotUser) != "1005" {
+		t.Fatalf("username 1005 = %q err=%v", gotUser, err)
+	}
+	payload, err := idStore.Get(context.Background(), []byte("1001"))
+	if err != nil {
+		t.Fatalf("id 1001 get: %v", err)
+	}
+	if string(payload) != "\x00" {
+		t.Fatalf("id-only payload = %q, want phone\\0username empty", payload)
+	}
+}
+
 // TestImporterStreamsCSVAndWritesExactIndexes covers the happy path.
 func TestImporterStreamsCSVAndWritesExactIndexes(t *testing.T) {
 	dir := t.TempDir()
@@ -187,7 +317,7 @@ func TestImporterUpdateExistingRewritesIndexes(t *testing.T) {
 		Sources:        []string{source},
 		Delimiter:      ',',
 		Workers:        1,
-		BatchSize:      10,
+		BatchSize:      1, // flush each row so Exists sees prior writes
 		UpdateExisting: true,
 	}, importer.Stores{
 		ID:       newMemoryEngine(),

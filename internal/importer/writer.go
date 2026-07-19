@@ -72,6 +72,12 @@ func (w *indexWriter) Handle(ctx context.Context, record Record) error {
 		return nil
 	}
 
+	// Extras/Name are retained on Record in memory but intentionally not encoded
+	// into LMDB until persistence support is added.
+	if record.Extras != "" && record.Extras != "{}" {
+		w.stats.extrasRetained.Add(1)
+	}
+
 	payload := encodeIDPayload(record.Phone, record.Username)
 	w.idBatch = append(w.idBatch, lmdb.KeyValue{
 		Key:   []byte(record.ID),
