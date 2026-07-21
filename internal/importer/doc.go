@@ -11,6 +11,9 @@
 //
 //	phone\0username\0name\0extras
 //
+// On update, extras JSON objects are merged (old keys kept, new keys added).
+// Empty phone/username/name in the new row keep the previously stored values.
+//
 // The package is designed for multi-file CSV/TXT sources larger than 100GB
 // using bounded memory, worker pools, batch writes, and graceful shutdown.
 package importer

@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -349,5 +350,51 @@ func TestImporterUpdateExistingRewritesIndexes(t *testing.T) {
 	}
 	if stats.Inserts != 1 || stats.Updates != 1 {
 		t.Fatalf("Inserts=%d Updates=%d, want 1 and 1", stats.Inserts, stats.Updates)
+	}
+}
+
+// TestImporterUpdateMergesExtrasJSON keeps old extras keys and adds new ones.
+func TestImporterUpdateMergesExtrasJSON(t *testing.T) {
+	dir := t.TempDir()
+	source := filepath.Join(dir, "merge.csv")
+	content := "id,name,phone,username,extras\n" +
+		`5001,Old Name,+15555000001,old_user,"{""access_hash"":""111"",""country"":""BD"}"` + "\n" +
+		`5001,,,"","{""customerId"":70965,""nick"":""Alime"}"` + "\n"
+	if err := os.WriteFile(source, []byte(content), 0o644); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
+	}
+
+	idStore := newMemoryEngine()
+	im, err := importer.New(importer.Config{
+		Sources:        []string{source},
+		Delimiter:      ',',
+		Workers:        1,
+		BatchSize:      1,
+		UpdateExisting: true,
+	}.WithAutoMapHeaders(true), importer.Stores{
+		ID:       idStore,
+		Phone:    newMemoryEngine(),
+		Username: newMemoryEngine(),
+	}, importer.NopLogger{}, nil)
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
+	}
+	if _, err := im.Run(context.Background()); err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+
+	payload, err := idStore.Get(context.Background(), []byte("5001"))
+	if err != nil {
+		t.Fatalf("Get: %v", err)
+	}
+	raw := string(payload)
+	if !strings.HasPrefix(raw, "+15555000001\x00old_user\x00Old Name\x00") {
+		t.Fatalf("payload fields = %q (empty new row should keep old phone/user/name)", raw)
+	}
+	if !strings.Contains(raw, `"access_hash":"111"`) ||
+		!strings.Contains(raw, `"country":"BD"`) ||
+		!strings.Contains(raw, `"customerId":70965`) ||
+		!strings.Contains(raw, `"nick":"Alime"`) {
+		t.Fatalf("merged extras missing keys: %s", raw)
 	}
 }

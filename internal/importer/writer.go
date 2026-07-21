@@ -72,6 +72,25 @@ func (w *indexWriter) Handle(ctx context.Context, record Record) error {
 		return nil
 	}
 
+	if update {
+		existing, getErr := w.stores.ID.Get(ctx, []byte(record.ID))
+		if getErr != nil {
+			return fmt.Errorf("importer: get existing id %s: %w", record.ID, getErr)
+		}
+		oldPhone, oldUsername, oldName, oldExtras := decodeIDPayload(existing)
+		record.Extras = mergeExtrasJSON(oldExtras, record.Extras)
+		// Keep prior contact fields when the new dump left them empty.
+		if record.Phone == "" {
+			record.Phone = oldPhone
+		}
+		if record.Username == "" {
+			record.Username = oldUsername
+		}
+		if record.Name == "" {
+			record.Name = oldName
+		}
+	}
+
 	if record.Extras != "" && record.Extras != "{}" {
 		w.stats.extrasRetained.Add(1)
 	}
