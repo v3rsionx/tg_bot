@@ -95,7 +95,7 @@ Commands:
   data view <id>              Show one record from the ID database
   data stats                  Show ID / phone / username entry counts
   data sample [n]             Show first N ID records (default 20)
-  data convert <file-or-dir>  Convert dump(s) to *.standard.csv
+  data convert <file-or-dir>  Convert CSV/TXT/JSONL dump(s) to *.standard.csv
   data import <csv>           Import a CSV into LMDB (updates existing IDs)
   data add <file>             Convert if needed, then import
 
@@ -103,6 +103,7 @@ Examples:
   data view 6473397867
   data sample 10
   data add dumps\users.csv
+  data add dumps\spider.jsonl
   data import dumps\users.standard.csv
 `)
 }

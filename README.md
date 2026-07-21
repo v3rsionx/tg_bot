@@ -125,11 +125,13 @@ go build -o bin/data.exe ./cmd/data
 .\bin\data.exe stats
 .\bin\data.exe sample 10
 .\bin\data.exe convert dumps\raw.csv
+.\bin\data.exe add dumps\spider.jsonl
 .\bin\data.exe import dumps\raw.standard.csv
 .\bin\data.exe add dumps\raw.csv
 ```
 
 - `view` / `stats` / `sample` read the configured LMDB paths (prefer absolute `LMDB_*_PATH` values).
+- `convert` / `add` accept CSV/TXT and JSONL (NDJSON). JSONL uses `adapterUserId` as Telegram ID (CRM `id` stays in extras).
 - `convert` writes `*.standard.csv`.
 - `import` / `add` update existing IDs (name/extras included).
 - `add` converts automatically when the file is not already standard CSV.

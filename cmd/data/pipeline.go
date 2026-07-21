@@ -23,11 +23,11 @@ func cmdConvert(paths []string) error {
 		return err
 	}
 	ctx := context.Background()
-	results, err := runConverter(ctx, sources, false)
-	if err != nil {
-		return err
-	}
-	for _, res := range results {
+	for _, src := range sources {
+		res, convErr := convertOne(ctx, src)
+		if convErr != nil {
+			return convErr
+		}
 		fmt.Println("========== CONVERT ==========")
 		fmt.Println(converter.FormatSummary(res.OutputFile, res.Statistics))
 		fmt.Printf("output=%s\n", res.OutputFile)
@@ -62,23 +62,33 @@ func cmdAdd(path string) error {
 	}
 
 	importPath := path
-	standard, err := hasStandardHeader(path)
-	if err != nil {
-		return err
-	}
-	if !standard && !strings.HasSuffix(strings.ToLower(path), ".standard.csv") {
-		fmt.Fprintf(os.Stderr, "converting %s ...\n", path)
-		results, convErr := runConverter(context.Background(), []string{path}, false)
+	if strings.HasSuffix(strings.ToLower(path), ".standard.csv") {
+		fmt.Fprintf(os.Stderr, "standard CSV detected, importing directly\n")
+	} else if converter.LooksLikeJSONL(path) {
+		fmt.Fprintf(os.Stderr, "converting JSONL %s ...\n", path)
+		res, convErr := converter.ConvertJSONLFile(context.Background(), path)
 		if convErr != nil {
 			return convErr
 		}
-		if len(results) == 0 {
-			return fmt.Errorf("converter produced no output for %q", path)
-		}
-		importPath = results[0].OutputFile
-		fmt.Fprintf(os.Stderr, "converted -> %s\n", importPath)
+		importPath = res.OutputFile
+		fmt.Fprintf(os.Stderr, "converted -> %s (rows=%d skipped=%d)\n",
+			importPath, res.Statistics.OutputRows, res.Statistics.SkippedRows)
 	} else {
-		fmt.Fprintf(os.Stderr, "standard CSV detected, importing directly\n")
+		standard, err := hasStandardHeader(path)
+		if err != nil {
+			return err
+		}
+		if standard {
+			fmt.Fprintf(os.Stderr, "standard CSV detected, importing directly\n")
+		} else {
+			fmt.Fprintf(os.Stderr, "converting %s ...\n", path)
+			res, convErr := convertOne(context.Background(), path)
+			if convErr != nil {
+				return convErr
+			}
+			importPath = res.OutputFile
+			fmt.Fprintf(os.Stderr, "converted -> %s\n", importPath)
+		}
 	}
 
 	stats, err := runImport(context.Background(), []string{importPath})
@@ -91,27 +101,32 @@ func cmdAdd(path string) error {
 	return nil
 }
 
-func runConverter(ctx context.Context, sources []string, dryRun bool) ([]converter.Result, error) {
+func convertOne(ctx context.Context, path string) (converter.Result, error) {
+	if converter.LooksLikeJSONL(path) {
+		return converter.ConvertJSONLFile(ctx, path)
+	}
 	log := stdioLogger{}
 	cfg := converter.Config{
-		Sources: sources,
-		DryRun:  dryRun,
+		Sources: []string{path},
 		LogPath: "logs/converter.log",
 	}
 	c, err := converter.New(cfg, log, func(p converter.Progress) {
 		fmt.Fprintf(os.Stderr, "\r%s", converter.FormatProgress(p))
 	})
 	if err != nil {
-		return nil, err
+		return converter.Result{}, err
 	}
 	defer c.Close()
 
 	results, _, err := c.Run(ctx)
 	fmt.Fprintln(os.Stderr)
 	if err != nil {
-		return nil, err
+		return converter.Result{}, err
 	}
-	return results, nil
+	if len(results) == 0 {
+		return converter.Result{}, fmt.Errorf("converter produced no output for %q", path)
+	}
+	return results[0], nil
 }
 
 func runImport(ctx context.Context, sources []string) (importer.Statistics, error) {
@@ -250,7 +265,7 @@ func resolveConvertInputs(args []string) ([]string, error) {
 				}
 				name := e.Name()
 				ext := strings.ToLower(filepath.Ext(name))
-				if ext != ".csv" && ext != ".txt" {
+				if !isConvertibleExt(ext) {
 					continue
 				}
 				if strings.HasSuffix(strings.ToLower(name), ".standard.csv") {
@@ -267,8 +282,8 @@ func resolveConvertInputs(args []string) ([]string, error) {
 			continue
 		}
 		ext := strings.ToLower(filepath.Ext(arg))
-		if ext != ".csv" && ext != ".txt" {
-			return nil, fmt.Errorf("unsupported input %q (want .csv or .txt)", arg)
+		if !isConvertibleExt(ext) && !converter.LooksLikeJSONL(arg) {
+			return nil, fmt.Errorf("unsupported input %q (want .csv .txt .jsonl .json .ndjson)", arg)
 		}
 		abs, _ := filepath.Abs(arg)
 		if _, ok := seen[abs]; ok {
@@ -278,9 +293,18 @@ func resolveConvertInputs(args []string) ([]string, error) {
 		out = append(out, arg)
 	}
 	if len(out) == 0 {
-		return nil, fmt.Errorf("no CSV/TXT sources found")
+		return nil, fmt.Errorf("no convertible sources found")
 	}
 	return out, nil
+}
+
+func isConvertibleExt(ext string) bool {
+	switch ext {
+	case ".csv", ".txt", ".jsonl", ".json", ".ndjson":
+		return true
+	default:
+		return false
+	}
 }
 
 type stdioLogger struct{}
